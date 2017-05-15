@@ -1,72 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="60dp"
-    android:orientation="vertical">
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                tools:layout_height="60dp">
 
     <TextView
-        android:id="@+id/TextView_Magnitude"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="16dp"
-        android:background="@drawable/magnitude_circle"
-        android:bottomLeftRadius="10dp"
-        android:gravity="center_vertical|center_horizontal"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        tools:ignore="RtlHardcoded"
-        tools:text="5.5" />
+            android:id="@+id/TextView_Magnitude"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="16dp"
+            android:background="@drawable/magnitude_circle"
+            android:bottomLeftRadius="10dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            tools:ignore="RtlHardcoded"
+            tools:text="5.5"
+            />
 
     <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="39dp"
-        android:layout_marginStart="39dp"
-        android:layout_toEndOf="@+id/TextView_Magnitude"
-        android:layout_toRightOf="@+id/TextView_Magnitude"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/TextView_Proximity"
+            android:id="@+id/linearLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="12sp"
-            tools:text="999KM SW OF" />
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:layout_toStartOf="@+id/TextView_Date"
+            android:layout_toEndOf="@+id/TextView_Magnitude"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
 
         <TextView
-            android:id="@+id/TextView_City"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/linearLayout"
-            android:layout_alignStart="@+id/linearLayout"
-            android:layout_below="@+id/linearLayout"
-            android:layout_weight="1"
-            android:textColor="@android:color/black"
-            android:textSize="14sp"
-            tools:text="San Francisco" />
+                android:id="@+id/TextView_Proximity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp"
+                tools:text="999KM SW OF"/>
+
+        <TextView
+                android:id="@+id/TextView_City"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/linearLayout"
+                android:layout_alignStart="@+id/linearLayout"
+                android:layout_below="@+id/linearLayout"
+                android:layout_weight="1"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                tools:text="Visokoi Island, South Georgia and the South Sandwich Islands"/>
 
     </LinearLayout>
 
     <TextView
-        android:id="@+id/TextView_Date"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="16dp"
-        android:gravity="center_vertical"
-        android:textAlignment="viewEnd"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="12sp"
-        tools:text="Nov 24, 2015\n12:45 PM" />
+            android:id="@+id/TextView_Date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="16dp"
+            android:textAlignment="viewEnd"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="12sp"
+            tools:text="Nov 24, 2015\n12:45 PM"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="16dp"/>
 
 </RelativeLayout>

@@ -30,7 +30,7 @@
             android:layout_marginTop="100dp"/>
 
     <TextView
-            android:text="Searching for Signal..."
+            android:text="Searching for Earthquakes..."
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/textView"

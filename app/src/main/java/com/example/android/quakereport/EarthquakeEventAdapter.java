@@ -1,32 +1,23 @@
 package com.example.android.quakereport;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import static android.support.v4.app.ActivityCompat.startActivity;
 
-
-/**
- * Created by JR on 4/26/17.
- */
 
 // have to specify that the array adapter will be taking ArrayList of earthquakeEvents
 public class EarthquakeEventAdapter extends ArrayAdapter<Earthquake> {
