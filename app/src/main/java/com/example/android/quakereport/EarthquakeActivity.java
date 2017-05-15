@@ -15,119 +15,187 @@
  */
 package com.example.android.quakereport;
 
-import android.os.AsyncTask;
+import android.app.LoaderManager;
+import android.content.Intent;
+import android.content.Loader;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class EarthquakeActivity extends AppCompatActivity {
+/**
+ * 1. Need to say the EarthquakeActivity implements the LoaderCallbacks interface and specify what
+ * it will return
+ */
+public class EarthquakeActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Earthquake>> {
+
 
     private static final String TAG = EarthquakeActivity.class.getName();
-    private final String URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson";
-
-    ListView earthquakeListView;
-    ProgressBar progressBar;
-    TextView textView;
-    Button reloadButton;
+    /**
+     * 2. Specify constant ID for the loading in case we are using multiple loaders in the same
+     * activity. Can select any integer value, in this case 1
+     */
+    private static final int EARTHQUAKE_LOADER_ID = 1;
+    private final String USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson";
+    /**
+     * UI Elements
+     */
+    private ListView earthquakeListView;
+    private ProgressBar progressBar;
+    private TextView textView;
+    private Button reloadButton;
+    /**
+     * Adapter for the list of earthquakes
+     */
+    private EarthquakeEventAdapter earthquakeEventAdapter;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.earthquake_activity_list);
 
-        // Find a reference to the {@link ListView} in the layout
-        earthquakeListView = (ListView) findViewById(R.id.list);
+        // Find a reference to the views in the layout
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         textView = (TextView) findViewById(R.id.textView);
+
         reloadButton = (Button) findViewById(R.id.Button_Reload);
-
-        // ASYNC data collection from USGS
-        EarthquakeAsyncTask earthquakeAsyncTask = new EarthquakeAsyncTask();
-        earthquakeAsyncTask.execute(URL);
-
-    }
-
-    /**
-     * Async query to USGS servers to get list of earthquake events
-     */
-    private class EarthquakeAsyncTask extends AsyncTask<String, Void, ArrayList<Earthquake>> {
-
-        /**
-         * This method is invoked on the main UI thread before the
-         * background work has been completed
-         */
-        @Override
-        protected void onPreExecute() {
-            // hide views
-            earthquakeListView.setVisibility(View.GONE);
+        if (reloadButton != null) {
             reloadButton.setVisibility(View.GONE);
-
-            // show views
-            progressBar.setVisibility(View.VISIBLE);
-            textView.setVisibility(View.VISIBLE);
         }
 
-        /**
-         * This method is invoked (or called) on a background thread, so we can perform
-         * long-running operations like making a network request.
-         *
-         * It is NOT okay to update the UI from a background thread, so we just return an
-         * {@link Earthquake} object as the result.
-         **/
-        @Override
-        protected ArrayList<Earthquake> doInBackground(String... params) {
-            return QueryUtils.getEarthquakesFromURL(params[0]);
-        }
+        earthquakeListView = (ListView) findViewById(R.id.list);
 
-        /**
-         * This method is invoked on the main UI thread after the background work has been
-         * completed.
-         *
-         * It IS okay to modify the UI within this method. We take the {@link Earthquake} objects
-         * (which was returned from the doInBackground() method) and update the views on the screen.
-         **/
-        @Override
-        protected void onPostExecute(ArrayList<Earthquake> earthquakes) {
+        // Create a new adapter that takes an empty list of earthquakes as input
+        earthquakeEventAdapter = new EarthquakeEventAdapter(this, new ArrayList<Earthquake>());
 
-            // if no earthquakes found (most likely network error...)
-            if (earthquakes.isEmpty()) {
-                // hide the spinner
-                progressBar.setVisibility(View.GONE);
-                // update the error message
-                textView.setVisibility(View.VISIBLE);
-                textView.setText("Could not find any quakes");
-            }
-            // otherwise update the ui
-            else {
-                // hide the spinner
-                progressBar.setVisibility(View.GONE);
-                // hide the error message
-                textView.setVisibility(View.GONE);
-
-                // update the list view with earthquakes
-                updateListView(earthquakes);
-
-                // make the list view visible
-                earthquakeListView.setVisibility(View.VISIBLE);
-            }
-        }
-    }
-
-
-    /**
-     * Fills in the list view with earthquake events
-     */
-    private void updateListView(ArrayList<Earthquake> earthquakes) {
-
-        EarthquakeEventAdapter earthquakeEventAdapter = new EarthquakeEventAdapter(this, earthquakes);
+        // Set the adapter on the {@link ListView}
+        // so the list can be populated in the user interface
         earthquakeListView.setAdapter(earthquakeEventAdapter);
 
+        // Set an item click listener on the ListView, which sends an intent to a web browser
+        // to open a website with more information about the selected earthquake.
+        earthquakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // Find the current earthquake that was clicked on
+                Earthquake currentEarthquake = earthquakeEventAdapter.getItem(position);
+
+                // Convert the String URL into a URI object (to pass into the Intent constructor)
+                Uri earthquakeUri = Uri.parse(currentEarthquake.getLink());
+
+                // Create a new intent to view the earthquake URI
+                Intent websiteIntent = new Intent(Intent.ACTION_VIEW, earthquakeUri);
+
+                // Send the intent to launch a new activity
+                startActivity(websiteIntent);
+            }
+        });
+
+        /**
+         * 4. Within the onCreate(), get the loader manager and tell the loader manager to
+         *    initialize the loader with the specified ID, the second argument could be a bundle of
+         *    addition information (skipped for now). The third argument is what object should
+         *    receive the LoaderCallbacks (and the data when it is finished loading), which will
+         *    be this activity.
+         */
+
+        // get a reference to the LoaderManager, in order to interact with loaders.
+        LoaderManager loaderManager = getLoaderManager();
+
+        // initialize the loader. Pass in the int ID constant defined above and pass in null for
+        // the bundle. Pass in this activity for the LoaderCallbacks parameter (which is valid
+        // because this activity implements the LoaderCallbacks interface).
+        loaderManager.initLoader(EARTHQUAKE_LOADER_ID, null, this);
+
+    }
+
+
+    /**
+     * 3. Override the 3 methods specified in the LoaderCallbacks interface.
+     *          - OnCreateLoader()
+     *          - OnLoadFinished()
+     *          - OnLoaderReset()
+     */
+
+    /**
+     * OnCreateLoader() for when the LoaderManager has determined that the loader with our specified
+     * ID isn't running, so we need to make a new one
+     *
+     * @return {@link EarthquakeLoader}
+     */
+    @Override
+    public Loader<List<Earthquake>> onCreateLoader(int id, Bundle args) {
+        // Create a new loader for the given URL
+        return new EarthquakeLoader(this, USGS_URL);
+    }
+
+
+    /**
+     * OnLoadFinished() uses the earthquake data to update our UI
+     * by updating the earthquake list in the adapter
+     */
+    @Override
+    public void onLoadFinished(Loader<List<Earthquake>> loader, List<Earthquake> earthquakes) {
+
+        // clear the adapter of previous earthquake data
+        earthquakeEventAdapter.clear();
+
+        // call display earthquakes to update the UI
+        displayEarthquakes(earthquakes);
+    }
+
+
+    /**
+     * onLoaderReset() when the loader is reset
+     */
+    @Override
+    public void onLoaderReset(Loader<List<Earthquake>> loader) {
+
+        // loader reset, so we can clear out our existing data.
+        earthquakeEventAdapter.clear();
+
+    }
+
+
+    /**
+     * displayEarthquakes will update the array with most recent earthquake data
+     *
+     * @param earthquakes
+     */
+    private void displayEarthquakes(List<Earthquake> earthquakes) {
+
+        if (earthquakes == null || earthquakes.isEmpty()) {
+            // hide loading bar
+            progressBar.setVisibility(View.GONE);
+            // hide reload button
+            reloadButton.setVisibility(View.GONE);
+            // hide list
+            earthquakeListView.setVisibility(View.GONE);
+            // update and show status
+            textView.setText("No earthquakes found.");
+            textView.setVisibility(View.VISIBLE);
+        } else {
+            // hide loading bar
+            progressBar.setVisibility(View.GONE);
+            // hide reload button
+            reloadButton.setVisibility(View.GONE);
+            // hide status
+            textView.setVisibility(View.GONE);
+
+            // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
+            // data set. This will trigger the ListView to update.
+            earthquakeEventAdapter.addAll(earthquakes);
+            earthquakeListView.setVisibility(View.VISIBLE);
+        }
     }
 }

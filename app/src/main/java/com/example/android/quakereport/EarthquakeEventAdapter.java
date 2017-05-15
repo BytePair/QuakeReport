@@ -13,8 +13,8 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -23,7 +23,7 @@ import java.util.Locale;
 public class EarthquakeEventAdapter extends ArrayAdapter<Earthquake> {
 
     // default constructor takes the context and an ArrayList of events
-    public EarthquakeEventAdapter(@NonNull Context context, @NonNull ArrayList<Earthquake> events) {
+    public EarthquakeEventAdapter(@NonNull Context context, @NonNull List<Earthquake> events) {
         // resource is 0 (not using it)
         super(context, 0, events);
     }
