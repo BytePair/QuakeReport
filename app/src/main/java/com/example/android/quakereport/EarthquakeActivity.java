@@ -16,12 +16,16 @@
 package com.example.android.quakereport;
 
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -40,12 +44,14 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
 
 
     private static final String TAG = EarthquakeActivity.class.getName();
+
     /**
      * 2. Specify constant ID for the loading in case we are using multiple loaders in the same
      * activity. Can select any integer value, in this case 1
      */
     private static final int EARTHQUAKE_LOADER_ID = 1;
     private final String USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson";
+
     /**
      * UI Elements
      */
@@ -53,6 +59,7 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
     private ProgressBar progressBar;
     private TextView textView;
     private Button reloadButton;
+
     /**
      * Adapter for the list of earthquakes
      */
@@ -67,13 +74,12 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
         // Find a reference to the views in the layout
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         textView = (TextView) findViewById(R.id.textView);
+        earthquakeListView = (ListView) findViewById(R.id.list);
 
         reloadButton = (Button) findViewById(R.id.Button_Reload);
         if (reloadButton != null) {
             reloadButton.setVisibility(View.GONE);
         }
-
-        earthquakeListView = (ListView) findViewById(R.id.list);
 
         // Create a new adapter that takes an empty list of earthquakes as input
         earthquakeEventAdapter = new EarthquakeEventAdapter(this, new ArrayList<Earthquake>());
@@ -81,6 +87,9 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
         // Set the adapter on the {@link ListView}
         // so the list can be populated in the user interface
         earthquakeListView.setAdapter(earthquakeEventAdapter);
+
+        // Set the empty state textView
+        earthquakeListView.setEmptyView(findViewById(R.id.textView));
 
         // Set an item click listener on the ListView, which sends an intent to a web browser
         // to open a website with more information about the selected earthquake.
@@ -135,8 +144,12 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
      */
     @Override
     public Loader<List<Earthquake>> onCreateLoader(int id, Bundle args) {
+
+        Log.v(TAG, "onCreateLoader() called.");
+
         // Create a new loader for the given URL
         return new EarthquakeLoader(this, USGS_URL);
+
     }
 
 
@@ -146,6 +159,10 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
      */
     @Override
     public void onLoadFinished(Loader<List<Earthquake>> loader, List<Earthquake> earthquakes) {
+
+        Log.v(TAG, "onLoadFinished() called.");
+
+        textView.setVisibility(View.GONE);
 
         // clear the adapter of previous earthquake data
         earthquakeEventAdapter.clear();
@@ -161,6 +178,8 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
     @Override
     public void onLoaderReset(Loader<List<Earthquake>> loader) {
 
+        Log.v(TAG, "onLoaderReset() called.");
+
         // loader reset, so we can clear out our existing data.
         earthquakeEventAdapter.clear();
 
@@ -168,22 +187,33 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
 
 
     /**
-     * displayEarthquakes will update the array with most recent earthquake data
+     * displayEarthquakes() will update the array with most recent earthquake data
      *
      * @param earthquakes
      */
     private void displayEarthquakes(List<Earthquake> earthquakes) {
 
         if (earthquakes == null || earthquakes.isEmpty()) {
-            // hide loading bar
-            progressBar.setVisibility(View.GONE);
-            // hide reload button
-            reloadButton.setVisibility(View.GONE);
-            // hide list
-            earthquakeListView.setVisibility(View.GONE);
-            // update and show status
-            textView.setText("No earthquakes found.");
-            textView.setVisibility(View.VISIBLE);
+
+            // if we have a good internet connection
+            if (CheckInternetStatus(this)) {
+                // hide loading bar
+                progressBar.setVisibility(View.INVISIBLE);
+                // hide reload button
+                reloadButton.setVisibility(View.GONE);
+                // hide list
+                earthquakeListView.setVisibility(View.GONE);
+                // update and show status
+                Log.v(TAG, "No earthquakes found.");
+                textView.setText("No earthquakes found.");
+                earthquakeListView.getEmptyView().setVisibility(View.VISIBLE);
+            }
+
+            // otherwise let user know we have bad connection
+            else {
+                displayBadConnection();
+            }
+
         } else {
             // hide loading bar
             progressBar.setVisibility(View.GONE);
@@ -197,5 +227,36 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
             earthquakeEventAdapter.addAll(earthquakes);
             earthquakeListView.setVisibility(View.VISIBLE);
         }
+    }
+
+
+    /**
+     * displayBadConnection() updates the UI to inform the user they have no internet connection
+     */
+    private void displayBadConnection() {
+        // hide loading bar
+        progressBar.setVisibility(View.INVISIBLE);
+        // hide reload button
+        reloadButton.setVisibility(View.GONE);
+        // hide list
+        earthquakeListView.setVisibility(View.GONE);
+        // update and show status
+        Log.v(TAG, "No internet connection.");
+        textView.setText("No internet connection.");
+        earthquakeListView.getEmptyView().setVisibility(View.VISIBLE);
+    }
+
+
+    /**
+     * Returns the status of the internet connection
+     *
+     * @return True:  Good internet connection False: Bad internet connection
+     */
+    private boolean CheckInternetStatus(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 }

@@ -40,6 +40,16 @@ public final class QueryUtils {
      */
     public static ArrayList<Earthquake> getEarthquakesFromURL(String urlAsString) {
 
+        Log.v(TAG, "Fetching earthquakes from QueryUtils");
+
+        /* test loading animation
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        */
+
         // get JSON response from URL
         String response = getJSONData(urlAsString);
 

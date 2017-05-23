@@ -2,6 +2,7 @@ package com.example.android.quakereport;
 
 import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.util.Log;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public class EarthquakeLoader extends AsyncTaskLoader<List<Earthquake>> {
     /**
      * Tag for log messages
      */
-    private static final String LOG_TAG = EarthquakeLoader.class.getName();
+    private static final String TAG = EarthquakeLoader.class.getName();
 
 
     /**
@@ -33,6 +34,7 @@ public class EarthquakeLoader extends AsyncTaskLoader<List<Earthquake>> {
     public EarthquakeLoader(Context context, String url) {
         super(context);
         mUrl = url;
+        Log.v(TAG, "Default EarthquakeLoader constructor called.");
     }
 
     /**
@@ -42,6 +44,7 @@ public class EarthquakeLoader extends AsyncTaskLoader<List<Earthquake>> {
     @Override
     protected void onStartLoading() {
         forceLoad();
+        Log.v(TAG, "Call forceLoad() from onStartLoading().");
     }
 
 
@@ -53,7 +56,7 @@ public class EarthquakeLoader extends AsyncTaskLoader<List<Earthquake>> {
         if (mUrl == null) {
             return null;
         }
-
+        Log.v(TAG, "loadInBackground() called.");
         // Perform the network request, parse the response, and extract a list of earthquakes.
         List<Earthquake> earthquakes = QueryUtils.getEarthquakesFromURL(mUrl);
         return earthquakes;
