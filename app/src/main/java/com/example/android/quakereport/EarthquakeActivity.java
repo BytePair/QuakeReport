@@ -19,13 +19,17 @@ import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -50,7 +54,10 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
      * activity. Can select any integer value, in this case 1
      */
     private static final int EARTHQUAKE_LOADER_ID = 1;
-    private final String USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson";
+
+
+    private static final String USGS_REQUEST_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query";
+
 
     /**
      * UI Elements
@@ -66,6 +73,30 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
     private EarthquakeEventAdapter earthquakeEventAdapter;
 
 
+    /**
+     * These two methods are to inflate the menu
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    /**
+     * onCreate method
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,13 +174,31 @@ public class EarthquakeActivity extends AppCompatActivity implements LoaderManag
      * @return {@link EarthquakeLoader}
      */
     @Override
-    public Loader<List<Earthquake>> onCreateLoader(int id, Bundle args) {
+    public Loader<List<Earthquake>> onCreateLoader(int i, Bundle bundle) {
 
-        Log.v(TAG, "onCreateLoader() called.");
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        // Create a new loader for the given URL
-        return new EarthquakeLoader(this, USGS_URL);
+        // get minimum magnitude from shared preferences
+        String minMagnitude = sharedPrefs.getString(
+                getString(R.string.settings_min_magnitude_key),
+                getString(R.string.settings_min_magnitude_default)
+        );
 
+        // get order by from shared preferences
+        String orderBy = sharedPrefs.getString(
+                getString(R.string.settings_order_by_key),
+                getString(R.string.settings_order_by_default)
+        );
+
+        Uri baseUri = Uri.parse(USGS_REQUEST_URL);
+        Uri.Builder uriBuilder = baseUri.buildUpon();
+
+        uriBuilder.appendQueryParameter("format", "geojson");
+        uriBuilder.appendQueryParameter("limit", "20");
+        uriBuilder.appendQueryParameter("minmag", minMagnitude);
+        uriBuilder.appendQueryParameter("orderby", orderBy);
+
+        return new EarthquakeLoader(this, uriBuilder.toString());
     }
 
 
